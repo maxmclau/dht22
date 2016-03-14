@@ -4,8 +4,8 @@ MIT license
 written by Adafruit Industries
 */
 
-#ifndef DHT_H
-#define DHT_H
+#ifndef _DHT_H_
+#define _DHT_H_
 
 #include "Arduino.h"
 
@@ -31,11 +31,22 @@ written by Adafruit Industries
 class DHT 
 {
   public:
+  
+		/**
+     *  Constructor
+     */
    DHT(uint8_t pin, uint8_t count=6);
-   void begin(void);
+   ~DHT();
+  
+   void init(void);
+  
+  
    float readTemperature(bool S=false, bool force=false);
    float convertCtoF(float);
    float convertFtoC(float);
+  
+  // Using both Rothfusz and Steadman's equations
+  // http://www.wpc.ncep.noaa.gov/html/heatindex_equation.shtml
    float computeHeatIndex(float temperature, float percentHumidity, bool isFahrenheit=true);
    float readHumidity(bool force=false);
    boolean read(bool force=false);

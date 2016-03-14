@@ -4,7 +4,7 @@ MIT license
 written by Adafruit Industries
 */
 
-#include "DHT.h"
+#include "DHT22.h"
 
 #define MIN_INTERVAL 2000
 
@@ -21,7 +21,9 @@ DHT::DHT(uint8_t pin, uint8_t count)
   // basd on the speed of the processor.
 }
 
-void DHT::begin(void) 
+DHT::~DHT() { }
+
+void DHT::init(void)
 {
   // set up the pins!
   pinMode(_pin, INPUT_PULLUP);
@@ -29,7 +31,6 @@ void DHT::begin(void)
   // >= MIN_INTERVAL right away. Note that this assignment wraps around,
   // but so will the subtraction.
   _lastreadtime = -MIN_INTERVAL;
-  DEBUG_PRINT("Max clock cycles: "); DEBUG_PRINTLN(_maxcycles, DEC);
 }
 
 //boolean S == Scale.  True == Fahrenheit; False == Celcius
@@ -78,19 +79,18 @@ float DHT::readHumidity(bool force)
   return f;
 }
 
-//boolean isFahrenheit: True == Fahrenheit; False == Celcius
-float DHT::computeHeatIndex(float temperature, float percentHumidity, bool isFahrenheit) {
-  // Using both Rothfusz and Steadman's equations
-  // http://www.wpc.ncep.noaa.gov/html/heatindex_equation.shtml
-  float hi;
+float DHT::computeHeatIndex(float temperature, float percentHumidity, bool isFahrenheit)
+{
+  float heatIndex;
 
   if (!isFahrenheit)
     temperature = convertCtoF(temperature);
 
-  hi = 0.5 * (temperature + 61.0 + ((temperature - 68.0) * 1.2) + (percentHumidity * 0.094));
+  heatIndex = 0.5 * (temperature + 61.0 + ((temperature - 68.0) * 1.2) + (percentHumidity * 0.094));
 
-  if (hi > 79) {
-    hi = -42.379 +
+  if (heatIndex > 79)
+  {
+    heatIndex = -42.379 +
              2.04901523 * temperature +
             10.14333127 * percentHumidity +
             -0.22475541 * temperature*percentHumidity +
@@ -101,13 +101,14 @@ float DHT::computeHeatIndex(float temperature, float percentHumidity, bool isFah
             -0.00000199 * pow(temperature, 2) * pow(percentHumidity, 2);
 
     if((percentHumidity < 13) && (temperature >= 80.0) && (temperature <= 112.0))
-      hi -= ((13.0 - percentHumidity) * 0.25) * sqrt((17.0 - abs(temperature - 95.0)) * 0.05882);
+      heatIndex -= ((13.0 - percentHumidity) * 0.25) * sqrt((17.0 - abs(temperature - 95.0)) * 0.05882);
 
     else if((percentHumidity > 85.0) && (temperature >= 80.0) && (temperature <= 87.0))
-      hi += ((percentHumidity - 85.0) * 0.1) * ((87.0 - temperature) * 0.2);
+      heatIndex += ((percentHumidity - 85.0) * 0.1) * ((87.0 - temperature) * 0.2);
   }
-
-  return isFahrenheit ? hi : convertFtoC(hi);
+  
+  //boolean isFahrenheit: True == Fahrenheit; False == Celcius
+  return isFahrenheit ? heatIndex : convertFtoC(heatIndex);
 }
 
 boolean DHT::read(bool force) {
@@ -151,12 +152,14 @@ boolean DHT::read(bool force) {
 
     // First expect a low signal for ~80 microseconds followed by a high signal
     // for ~80 microseconds again.
-    if (expectPulse(LOW) == 0) {
+    if (expectPulse(LOW) == 0)
+    {
       DEBUG_PRINTLN(F("Timeout waiting for start signal low pulse."));
       _lastresult = false;
       return _lastresult;
     }
-    if (expectPulse(HIGH) == 0) {
+    if (expectPulse(HIGH) == 0)
+    {
       DEBUG_PRINTLN(F("Timeout waiting for start signal high pulse."));
       _lastresult = false;
       return _lastresult;
@@ -178,17 +181,20 @@ boolean DHT::read(bool force) {
 
   // Inspect pulses and determine which ones are 0 (high state cycle count < low
   // state cycle count), or 1 (high state cycle count > low state cycle count).
-  for (int i=0; i<40; ++i) {
+  for (int i=0; i<40; ++i)
+  {
     uint32_t lowCycles  = cycles[2*i];
     uint32_t highCycles = cycles[2*i+1];
-    if ((lowCycles == 0) || (highCycles == 0)) {
+    if ((lowCycles == 0) || (highCycles == 0))
+    {
       DEBUG_PRINTLN(F("Timeout waiting for pulse."));
       _lastresult = false;
       return _lastresult;
     }
     data[i/8] <<= 1;
     // Now compare the low and high cycle times to see if the bit is a 0 or 1.
-    if (highCycles > lowCycles) {
+    if (highCycles > lowCycles)
+    {
       // High cycles are greater than 50us low cycle count, must be a 1.
       data[i/8] |= 1;
     }
@@ -224,22 +230,27 @@ boolean DHT::read(bool force) {
 // This is adapted from Arduino's pulseInLong function (which is only available
 // in the very latest IDE versions):
 //   https://github.com/arduino/Arduino/blob/master/hardware/arduino/avr/cores/arduino/wiring_pulse.c
-uint32_t DHT::expectPulse(bool level) {
+uint32_t DHT::expectPulse(bool level)
+{
   uint32_t count = 0;
   // On AVR platforms use direct GPIO port access as it's much faster and better
   // for catching pulses that are 10's of microseconds in length:
   #ifdef __AVR
     uint8_t portState = level ? _bit : 0;
-    while ((*portInputRegister(_port) & _bit) == portState) {
-      if (count++ >= _maxcycles) {
+    while ((*portInputRegister(_port) & _bit) == portState)
+    {
+      if (count++ >= _maxcycles)
+      {
         return 0; // Exceeded timeout, fail.
       }
     }
   // Otherwise fall back to using digitalRead (this seems to be necessary on ESP8266
   // right now, perhaps bugs in direct port access functions?).
   #else
-    while (digitalRead(_pin) == level) {
-      if (count++ >= _maxcycles) {
+    while (digitalRead(_pin) == level)
+    {
+      if (count++ >= _maxcycles)
+      {
         return 0; // Exceeded timeout, fail.
       }
     }
