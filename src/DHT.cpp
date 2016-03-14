@@ -8,10 +8,9 @@ written by Adafruit Industries
 
 #define MIN_INTERVAL 2000
 
-DHT::DHT(uint8_t pin, uint8_t type, uint8_t count) 
+DHT::DHT(uint8_t pin, uint8_t count)
 {
   _pin = pin;
-  _type = type;
   #ifdef __AVR
     _bit = digitalPinToBitMask(pin);
     _port = digitalPinToPort(pin);
@@ -40,31 +39,18 @@ float DHT::readTemperature(bool S, bool force)
 
   if (read(force)) 
   {
-    switch (_type) 
-	{
-    case DHT11:
-      f = data[2];
-      if(S) 
-	  {
-        f = convertCtoF(f);
-      }
-      break;
-    case DHT22:
-    case DHT21:
       f = data[2] & 0x7F;
       f *= 256;
       f += data[3];
       f *= 0.1;
       if (data[2] & 0x80) 
-	  {
+      {
         f *= -1;
       }
       if(S)
-	  {
+      {
         f = convertCtoF(f);
       }
-      break;
-    }
   }
   return f;
 }
@@ -82,19 +68,12 @@ float DHT::convertFtoC(float f)
 float DHT::readHumidity(bool force) 
 {
   float f = NAN;
-  if (read()) {
-    switch (_type) {
-    case DHT11:
-      f = data[0];
-      break;
-    case DHT22:
-    case DHT21:
+  if (read())
+  {
       f = data[0];
       f *= 256;
       f += data[1];
       f *= 0.1;
-      break;
-    }
   }
   return f;
 }

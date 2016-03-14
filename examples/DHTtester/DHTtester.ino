@@ -1,21 +1,19 @@
-// Example testing sketch for various DHT humidity/temperature sensors
+// Example testing sketch for DHT11 humidity/temperature sensor
 // Written by ladyada, public domain
+// Remember to connect a 10K resistor from pin 2 (data) to pin 1 (power) of the sensor
+// Reduced to barebones by Christian Tamburilla for use in (MOA)
 
 #include "DHT.h"
 
-#define DHTPIN 2     // what digital pin we're connected to
+#define DHTPIN 2
 
-#define DHTTYPE DHT11   // DHT 11
-
-// Connect a 10K resistor from pin 2 (data) to pin 1 (power) of the sensor
 
 // Initialize DHT sensor.
-DHT sensor(DHTPIN, DHTTYPE);
+DHT sensor(DHTPIN, DHT22);
 
 void setup() {
   Serial.begin(9600);
-  Serial.println("DHTxx test!");
-
+  Serial.println("DHT22 Loading");
   sensor.begin();
 }
 
