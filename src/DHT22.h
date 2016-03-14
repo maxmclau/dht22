@@ -50,7 +50,16 @@ class DHT
    float computeHeatIndex(float temperature, float percentHumidity, bool isFahrenheit=true);
    float readHumidity(bool force=false);
    boolean read(bool force=false);
-
+  
+		/**
+     *  Getters
+     */
+  uint8_t getTemperatureF();
+  uint8_t getTemperatureC();
+  uint8_t getHumidity();
+  uint8_t getHeatIndex();
+  
+  
  private:
   uint8_t data[5];
   uint8_t _pin, _type;

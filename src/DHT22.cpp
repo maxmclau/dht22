@@ -258,3 +258,24 @@ uint32_t DHT::expectPulse(bool level)
 
   return count;
 }
+
+
+uint8_t DHT::getTemperatureF()
+{
+  return readTemperature(true);
+}
+uint8_t DHT::getTemperatureC()
+{
+  return readTemperature(false);
+}
+uint8_t DHT::getHumidity()
+{
+  return readHumidity();
+}
+uint8_t DHT::getHeatIndex()
+{
+  float temp = getTemperatureF();
+  float percentHumid = readTemperature(true);
+  return computeHeatIndex(temp, percentHumid);
+}
+
