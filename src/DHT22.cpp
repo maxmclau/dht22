@@ -1,39 +1,37 @@
-/* DHT library
-
-MIT license
-written by Adafruit Industries
-*/
+/* MIT license
+ *
+ * Written by Adafruit Industries
+ *
+ * Redesigned by Christian Tamburilla for use in (MOA) @ BrunoAir
+ */
 
 #include "DHT22.h"
 
 #define MIN_INTERVAL 2000
 
-DHT::DHT(uint8_t pin, uint8_t count)
+DHT::DHT(uint8_t pin)
 {
   _pin = pin;
+  
   #ifdef __AVR
     _bit = digitalPinToBitMask(pin);
     _port = digitalPinToPort(pin);
   #endif
-  _maxcycles = microsecondsToClockCycles(1000);  // 1 millisecond timeout for
-                                                 // reading pulses from DHT sensor.
-  // Note that count is now ignored as the DHT reading algorithm adjusts itself
-  // basd on the speed of the processor.
+  
+  // 1 millisecond timeout for reading pulses from DHT sensor.
+  // The DHT reading algorithm adjusts itself based on the speed of the processor.
+  _maxcycles = microsecondsToClockCycles(1000);
 }
 
 DHT::~DHT() { }
 
 void DHT::init(void)
 {
-  // set up the pins!
   pinMode(_pin, INPUT_PULLUP);
-  // Using this value makes sure that millis() - lastreadtime will be
-  // >= MIN_INTERVAL right away. Note that this assignment wraps around,
-  // but so will the subtraction.
+  // Using this value makes sure that millis() - lastreadtime will be >= MIN_INTERVAL right away. Note that this assignment wraps around, but so will the subtraction.
   _lastreadtime = -MIN_INTERVAL;
 }
 
-//boolean S == Scale.  True == Fahrenheit; False == Celcius
 float DHT::readTemperature(bool S, bool force) 
 {
   float f = NAN;
@@ -56,7 +54,20 @@ float DHT::readTemperature(bool S, bool force)
   return f;
 }
 
-float DHT::convertCtoF(float c) 
+float DHT::readHumidity(bool force)
+{
+  float f = NAN;
+  if (read())
+  {
+    f = data[0];
+    f *= 256;
+    f += data[1];
+    f *= 0.1;
+  }
+  return f;
+}
+
+float DHT::convertCtoF(float c)
 {
   return c * 1.8 + 32;
 }
@@ -66,18 +77,6 @@ float DHT::convertFtoC(float f)
   return (f - 32) * 0.55555;
 }
 
-float DHT::readHumidity(bool force) 
-{
-  float f = NAN;
-  if (read())
-  {
-      f = data[0];
-      f *= 256;
-      f += data[1];
-      f *= 0.1;
-  }
-  return f;
-}
 
 float DHT::computeHeatIndex(float temperature, float percentHumidity, bool isFahrenheit)
 {
@@ -154,13 +153,13 @@ boolean DHT::read(bool force) {
     // for ~80 microseconds again.
     if (expectPulse(LOW) == 0)
     {
-      DEBUG_PRINTLN(F("Timeout waiting for start signal low pulse."));
+      Serial.println(F("Timeout waiting for start signal low pulse."));
       _lastresult = false;
       return _lastresult;
     }
     if (expectPulse(HIGH) == 0)
     {
-      DEBUG_PRINTLN(F("Timeout waiting for start signal high pulse."));
+      Serial.println(F("Timeout waiting for start signal high pulse."));
       _lastresult = false;
       return _lastresult;
     }
@@ -187,7 +186,7 @@ boolean DHT::read(bool force) {
     uint32_t highCycles = cycles[2*i+1];
     if ((lowCycles == 0) || (highCycles == 0))
     {
-      DEBUG_PRINTLN(F("Timeout waiting for pulse."));
+      Serial.println(F("Timeout waiting for pulse."));
       _lastresult = false;
       return _lastresult;
     }
@@ -203,21 +202,13 @@ boolean DHT::read(bool force) {
     // stored data.
   }
 
-  DEBUG_PRINTLN(F("Received:"));
-  DEBUG_PRINT(data[0], HEX); DEBUG_PRINT(F(", "));
-  DEBUG_PRINT(data[1], HEX); DEBUG_PRINT(F(", "));
-  DEBUG_PRINT(data[2], HEX); DEBUG_PRINT(F(", "));
-  DEBUG_PRINT(data[3], HEX); DEBUG_PRINT(F(", "));
-  DEBUG_PRINT(data[4], HEX); DEBUG_PRINT(F(" =? "));
-  DEBUG_PRINTLN((data[0] + data[1] + data[2] + data[3]) & 0xFF, HEX);
-
   // Check we read 40 bits and that the checksum matches.
   if (data[4] == ((data[0] + data[1] + data[2] + data[3]) & 0xFF)) {
     _lastresult = true;
     return _lastresult;
   }
   else {
-    DEBUG_PRINTLN(F("Checksum failure!"));
+    Serial.println(F("Checksum failure!"));
     _lastresult = false;
     return _lastresult;
   }

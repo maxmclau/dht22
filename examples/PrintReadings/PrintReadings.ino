@@ -7,7 +7,7 @@
 #define DHTPIN 2
 
 // Initialize DHT sensor.
-DHT sensor(DHTPIN, DHT22);
+DHT sensor(DHTPIN);
 
 void setup() 
 {
