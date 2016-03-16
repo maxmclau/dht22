@@ -9,7 +9,7 @@
 
 #define MIN_INTERVAL 2000
 
-DHT::DHT(uint8_t pin)
+DHT::DHT(uint8_t pin) : _sensorID(-1)
 {
   _pin = pin;
   
@@ -249,6 +249,47 @@ uint32_t DHT::expectPulse(bool level)
 
   return count;
 }
+
+
+/*
+ @brief  Gets the most recent sensor event
+ */
+bool DHT::getEvent(sensors_event_t *event)
+{
+  /* Clear the event */
+  memset(event, 0, sizeof(sensors_event_t));
+  
+  //store values
+  event->version   = sizeof(sensors_event_t);
+  event->sensor_id = _sensorID;
+  event->type      = SENSOR_TYPE_LIS3DH;
+  event->timestamp = 0;
+  
+  //get bit data
+  read();
+  
+}
+
+/*
+ @brief  Gets the sensor_t data
+ */
+void DHT::getSensor(sensor_t *sensor)
+{
+  // Clear sensor_t
+  memset(sensor, 0, sizeof(sensor_t));
+  
+  // store values
+  strncpy (sensor->name, "LIS3DH", sizeof(sensor->name) - 1);
+  sensor->name[sizeof(sensor->name)- 1] = 0;
+  sensor->version     = 1;
+  sensor->sensor_id   = _sensorID;
+  sensor->type        = SENSOR_TYPE_LIS3DH;
+  sensor->min_delay   = 0;
+  sensor->max_value   = 0;
+  sensor->min_value   = 0;
+  sensor->resolution  = 0;
+}
+
 
 
 uint8_t DHT::getTemperatureF()

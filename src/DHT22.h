@@ -9,12 +9,13 @@
 #define _DHT_H_
 
 #include "Arduino.h"
+#include <Sensor.h>
 
 // Define types of sensors.
 #define DHT22 22
 
 
-class DHT 
+class DHT : public Sensor
 {
   public:
   
@@ -53,6 +54,12 @@ class DHT
   uint8_t getHumidity();
   uint8_t getHeatIndex();
   
+  /*
+   * @brief Sensor.h enums for types
+   */
+  bool getEvent(sensors_event_t *event);
+  void getSensor(sensor_t *sensor);
+  
   
  private:
   
@@ -69,7 +76,9 @@ class DHT
   bool _lastresult;
 
   uint32_t expectPulse(bool level);
-
+  
+  //Used in getEvent & getSensor
+  int32_t _sensorID;
 };
 
 class InterruptLock 
@@ -85,5 +94,7 @@ class InterruptLock
    }
 
 };
+
+
 
 #endif
