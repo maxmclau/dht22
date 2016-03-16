@@ -262,7 +262,7 @@ bool DHT::getEvent(sensors_event_t *event)
   //store values
   event->version   = sizeof(sensors_event_t);
   event->sensor_id = _sensorID;
-  event->type      = SENSOR_TYPE_LIS3DH;
+  event->type      = SENSOR_TYPE_DHT22;
   event->timestamp = 0;
   
   //get bit data
@@ -279,16 +279,17 @@ void DHT::getSensor(sensor_t *sensor)
   memset(sensor, 0, sizeof(sensor_t));
   
   // store values
-  strncpy (sensor->name, "LIS3DH", sizeof(sensor->name) - 1);
+  strncpy (sensor->name, "DHT22", sizeof(sensor->name) - 1);
   sensor->name[sizeof(sensor->name)- 1] = 0;
   sensor->version     = 1;
   sensor->sensor_id   = _sensorID;
-  sensor->type        = SENSOR_TYPE_LIS3DH;
+  sensor->type        = SENSOR_TYPE_DHT22;
   sensor->min_delay   = 0;
   sensor->max_value   = 0;
   sensor->min_value   = 0;
   sensor->resolution  = 0;
 }
+
 
 
 
